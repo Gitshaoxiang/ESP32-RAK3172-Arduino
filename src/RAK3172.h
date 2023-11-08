@@ -12,5 +12,6 @@
 #include <vector>
 
 #include "RAK3172_P2P.h"
+#include "RAK3172_LoRaWAN.h"
 
 #endif
