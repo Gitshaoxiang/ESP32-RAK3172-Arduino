@@ -2,7 +2,7 @@
 #include <M5Unified.h>
 #include "M5GFX.h"
 
-#include "background_p2p.h"
+#include "background_lorawan.h"
 
 M5Canvas canvas_status(&M5.Display);
 M5Canvas canvas_payload(&M5.Display);
@@ -20,13 +20,6 @@ M5Canvas canvas_payload(&M5.Display);
 
 RAK3172_LoRaWAN lorawan;
 
-// void LoRaLoopTask(void* arg) {
-//     while (1) {
-//         lora.update();
-//         vTaskDelay(5);
-//     }
-// }
-
 void updatePayload(const char* payload) {
     canvas_payload.fillScreen(DARK_BG_COLOR);
     canvas_payload.setCursor(0, 0);
@@ -34,18 +27,12 @@ void updatePayload(const char* payload) {
     canvas_payload.pushSprite(142, 86);
 }
 
-void updateConfig(P2P_mode_t mode) {
+void updateTitle(const char* str) {
     M5.Display.pushImage(0, 0, 320, 240, image_data_background);
-    if (mode == P2P_RX_MODE) {
-        M5.Display.drawString("LoRa RX: 920M SF7 125K CR 4/6", 160, 20);
-        updatePayload("Waiting For Data...");
-
-    } else {
-        M5.Display.drawString("LoRa TX: 920M SF7 125K CR 4/6", 160, 20);
-        updatePayload("Click BtnB To Send Data");
-    }
+    M5.Display.drawString(str, 160, 20);
     canvas_status.fillScreen(DARK_BG_COLOR);
     canvas_status.pushSprite(15, 86);
+    canvas_payload.pushSprite(142, 86);
 }
 
 void updateTXStatus(const char* payload, int len, bool flag) {
@@ -67,7 +54,7 @@ void updateTXStatus(const char* payload, int len, bool flag) {
     canvas_status.pushSprite(15, 86);
 }
 
-void updateRXStatus(int rssi, int snr, int len) {
+void updateRXStatus(int rssi, int snr, int port, int len) {
     canvas_status.fillScreen(DARK_BG_COLOR);
     canvas_status.setTextColor(WHITE);
     canvas_status.setCursor(10, 0);
@@ -80,15 +67,32 @@ void updateRXStatus(int rssi, int snr, int len) {
     canvas_status.print("SNR: ");
     canvas_status.print(snr);
     canvas_status.setCursor(10, 75);
-
-    if (rssi > -10 && snr > 4) {
-        canvas_status.setTextColor(GREEN);
-        canvas_status.print("测试通过");
-    } else {
-        canvas_status.setTextColor(RED);
-        canvas_status.print("信号不通过");
-    }
+    canvas_status.print("PORT: ");
+    canvas_status.print(port);
     canvas_status.pushSprite(15, 86);
+}
+
+void joinCallback(bool status) {
+    if (status) {
+        String title = "Joined! EUI:" + String(DEVEUI);
+        updateTitle(title.c_str());
+    }
+}
+
+void receiveCallback(LoRaWAN_frame_t data) {
+}
+
+void sendCallback() {
+}
+
+void errorCallback(char* error) {
+}
+
+void LoRaWANLoopTask(void* arg) {
+    while (1) {
+        lorawan.update();
+        vTaskDelay(5);
+    }
 }
 
 #endif
@@ -133,31 +137,94 @@ void setup() {
         delay(1000);
     }
 
-    while (!lorawan.setMode(CLASS_C)) {
+    // while (!lorawan.setMode(CLASS_C)) {
+    while (!lorawan.setMode(CLASS_A)) {
         delay(1000);
     }
-    Serial.println("Config Init OK");
-    updateConfig(P2P_TX_MODE);
-    Serial.println("TX Mode Init OK");
 
-    if (lorawan.join()) {
-        Serial.println("Start Join...");
+    while (!lorawan.configDR(4)) {
+        delay(1000);
     }
-    // xTaskCreate(LoRaLoopTask, "LoRaLoopTask", 1024 * 10, NULL, 5, NULL);
+
+    while (!lorawan.configLinkCheck(ALLWAYS_LINKCHECK)) {
+        delay(1000);
+    }
+
+    lorawan.onReceive(receiveCallback);
+    lorawan.onSend(sendCallback);
+    lorawan.onJoin(joinCallback);
+    lorawan.onError(errorCallback);
+
+    Serial.println("Config Init OK");
+
+    updateTitle("Click BtnA Start Join...");
+    updatePayload("Click BtnA Start Join...");
+
+    xTaskCreate(LoRaWANLoopTask, "LoRaWANLoopTask", 1024 * 10, NULL, 5, NULL);
 #endif
 }
 
 void loop() {
     M5.update();
 
-    if (Serial.available()) {
-        Serial2.write(Serial.read());
-    }
+    // if (Serial.available()) {
+    //     Serial2.write(Serial.read());
+    // }
 
-    if (Serial2.available()) {
-        Serial.write(Serial2.read());
-    }
+    // if (Serial2.available()) {
+    //     Serial.write(Serial2.read());
+    // }
+
 #ifndef NATIVE_PLATFORM
+    if (M5.BtnA.wasReleased()) {
+        if (lorawan.join(true, false, 10, 8)) {
+            Serial.println("Start Join...");
+        } else {
+            Serial.println("Join Fail");
+        }
+    }
+    if (M5.BtnC.wasReleased()) {
+        if (lorawan.sleep(3000)) {
+            Serial.println("sleep...");
+        }
 
+        //  else {
+        //     Serial.println("sleep Fail");
+        // }
+    }
+    if (M5.BtnB.wasReleased()) {
+        String data = "UPlink LoRaWAN Frame: " + String(millis());
+        if (lorawan.send(data)) {
+            updateTXStatus(data.c_str(), data.length(), true);
+        } else {
+            updateTXStatus(data.c_str(), data.length(), false);
+        }
+    }
+    if (lorawan.available()) {
+        std::vector<LoRaWAN_frame_t> frames = lorawan.read();
+        for (int i = 0; i < frames.size(); i++) {
+            Serial.print("RSSI: ");
+            Serial.println(frames[i].rssi);
+            Serial.print("SNR: ");
+            Serial.println(frames[i].snr);
+            Serial.print("LEN: ");
+            Serial.println(frames[i].len);
+            Serial.print("PORT: ");
+            Serial.println(frames[i].port);
+            Serial.print("UNITCAST: ");
+            Serial.println(frames[i].unicast);
+            Serial.print("Payload: ");
+            Serial.println(frames[i].payload);
+            updateRXStatus(frames[i].rssi, frames[i].snr, frames[i].port,
+                           frames[i].len);
+            updatePayload(frames[i].payload);
+        }
+        lorawan.flush();
+    }
+    if (Serial.available()) {  // If the serial port reads data.
+        String ch =
+            Serial.readString();  // Copy the data read from the serial port
+        lorawan.sendCommand(ch);
+    }
 #endif
 }

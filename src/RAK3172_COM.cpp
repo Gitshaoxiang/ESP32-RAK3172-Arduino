@@ -13,10 +13,7 @@ String encodeMsg(String str) {
 }
 
 String decodeMsg(String hexEncoded) {
-    Serial.println("hexEncoded LEN: " + String(hexEncoded.length()));
-
     if ((hexEncoded.length() % 2) == 0) {
-        Serial.println("hexEncoded: " + hexEncoded);
         char buf[hexEncoded.length() + 1];
         char tempbuf[((hexEncoded.length() + 1))];
         hexEncoded.toCharArray(buf, hexEncoded.length() + 1);
