@@ -86,7 +86,6 @@ bool RAK3172::sendCommand(String cmd) {
         _serial->println(cmd);
         Serial.print("SEND CMD: ");
         Serial.println(cmd);
-        // String res = _serial->readStringUntil('\n');
         String res = _serial->readString();
         Serial.print("RESPONSE: ");
         Serial.println(res);
@@ -102,7 +101,7 @@ bool RAK3172::init(HardwareSerial *serial, int rx, int tx, int baudrate) {
     _serial = serial;
     _tx_pin = tx;
     _rx_pin = rx;
-    _serial->setTimeout(100);
+    _serial->setTimeout(200);
     _serial->begin(baudrate, SERIAL_8N1, rx, tx);
     _serial_mutex = xSemaphoreCreateMutex();
     xSemaphoreGive(_serial_mutex);

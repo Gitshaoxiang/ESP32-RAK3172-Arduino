@@ -13,7 +13,7 @@ typedef struct {
     char payload[500];
 } P2P_frame_t;
 
-typedef enum { P2P_TX_MODE = 0, P2P_RX_MODE } P2P_mode_t;
+typedef enum { P2P_TX_MODE = 0, P2P_RX_MODE, P2P_TX_RX_MODE } P2P_mode_t;
 
 class RAK3172_P2P : public RAK3172 {
    private:
@@ -25,7 +25,7 @@ class RAK3172_P2P : public RAK3172 {
               int baudrate = 115200);
     void update();
     bool config(long freq, int sf, int bw, int cr, int prlen, int pwr);
-    bool setMode(P2P_mode_t mode, time_t timeout = 65534);
+    bool setMode(P2P_mode_t mode, time_t timeout = 65535);
     size_t print(const char *str);
     size_t write(const uint8_t *buf, size_t size);
     int available();

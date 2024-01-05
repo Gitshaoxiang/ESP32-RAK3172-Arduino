@@ -17,7 +17,7 @@ M5Canvas canvas_payload(&M5.Display);
 #define LORA_CONFIG_BW    125
 #define LORA_CONFIG_CR    1
 #define LORA_CONFIG_PRLEN 8
-#define LORA_CONFIG_PWR   20
+#define LORA_CONFIG_PWR   22
 
 // Bandwidth = {125, 250, 500}
 // SF = {5, 6, 7, 8, 9, 10, 11, 12}

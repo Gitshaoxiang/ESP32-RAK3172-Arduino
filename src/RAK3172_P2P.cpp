@@ -38,7 +38,6 @@ void RAK3172_P2P::update() {
 
 bool RAK3172_P2P::init(HardwareSerial *serial, int rx, int tx, int baudrate) {
     RAK3172::init(serial, rx, tx, baudrate);
-    delay(100);
     return (sendCommand("AT+NWM=0") && sendCommand("AT"));
 }
 
@@ -58,6 +57,11 @@ bool RAK3172_P2P::setMode(P2P_mode_t mode, time_t timeout) {
     if (mode == P2P_RX_MODE) {
         status = sendCommand("AT+PRECV=" + String(timeout));
     }
+
+    if (mode == P2P_TX_RX_MODE) {
+        status = sendCommand("AT+PRECV=65533");
+    }
+
     if (status) {
         _mode = mode;
     }
