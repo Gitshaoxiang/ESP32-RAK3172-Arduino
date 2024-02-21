@@ -23,6 +23,7 @@ class RAK3172_P2P : public RAK3172 {
    public:
     bool init(HardwareSerial *serial = &Serial2, int rx = 16, int tx = 17,
               int baudrate = 115200);
+    bool restart();
     void update();
     bool config(long freq, int sf, int bw, int cr, int prlen, int pwr);
     bool setMode(P2P_mode_t mode, time_t timeout = 65535);

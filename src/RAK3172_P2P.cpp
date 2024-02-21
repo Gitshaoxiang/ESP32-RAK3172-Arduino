@@ -38,7 +38,14 @@ void RAK3172_P2P::update() {
 
 bool RAK3172_P2P::init(HardwareSerial *serial, int rx, int tx, int baudrate) {
     RAK3172::init(serial, rx, tx, baudrate);
-    return (sendCommand("AT+NWM=0") && sendCommand("AT"));
+    restart();
+    delay(100);
+    return (sendCommand("AT") && sendCommand("AT+NWM=0"));
+}
+
+bool RAK3172_P2P::restart() {
+    sendCommand("ATZ");
+    return true;
 }
 
 bool RAK3172_P2P::config(long freq, int sf, int bw, int cr, int prlen,
