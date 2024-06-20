@@ -23,10 +23,13 @@ class RAK3172 {
     SemaphoreHandle_t _serial_mutex;
 
    public:
-    bool init(HardwareSerial *serial = &Serial2, int rx = 16, int tx = 17,
-              int baudrate = 115200);
+    bool init(HardwareSerial *serial = &Serial2, int rx = 16, int tx = 17, int baudrate = 115200);
     bool sendCommand(String cmd);
     size_t debug(String cmd);
+
+    bool configLPM(bool enable);
+    bool configLPMLevel(uint8_t level);
+    bool sleep(uint32_t time_ms);
 };
 
 #endif

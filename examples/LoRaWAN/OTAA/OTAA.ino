@@ -215,15 +215,13 @@ void loop() {
             Serial.println(frames[i].unicast);
             Serial.print("Payload: ");
             Serial.println(frames[i].payload);
-            updateRXStatus(frames[i].rssi, frames[i].snr, frames[i].port,
-                           frames[i].len);
+            updateRXStatus(frames[i].rssi, frames[i].snr, frames[i].port, frames[i].len);
             updatePayload(frames[i].payload);
         }
         lorawan.flush();
     }
-    if (Serial.available()) {  // If the serial port reads data.
-        String ch =
-            Serial.readString();  // Copy the data read from the serial port
+    if (Serial.available()) {             // If the serial port reads data.
+        String ch = Serial.readString();  // Copy the data read from the serial port
         lorawan.sendCommand(ch);
     }
 #endif

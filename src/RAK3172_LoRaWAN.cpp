@@ -131,19 +131,6 @@ bool RAK3172_LoRaWAN::configComfirm(bool comfirm) {
     }
 }
 
-bool RAK3172_LoRaWAN::configLPM(bool enable, uint8_t level) {
-    if (enable) {
-        return (sendCommand("AT+LPM=1") &&
-                sendCommand("AT+LPMLVL=" + String(level)));
-    } else {
-        return sendCommand("AT+LPM=0");
-    }
-}
-
-bool RAK3172_LoRaWAN::sleep(uint32_t time_ms) {
-    return sendCommand("AT+SLEEP=" + String(time_ms));
-}
-
 size_t RAK3172_LoRaWAN::send(String data, int port) {
     String hexEncoded = encodeMsg(data);
     if (sendCommand("AT+SEND=" + String(port) + ":" + hexEncoded)) {

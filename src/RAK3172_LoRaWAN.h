@@ -64,9 +64,7 @@ class RAK3172_LoRaWAN : public RAK3172 {
 
     bool configComfirm(bool comfirm);
 
-    bool configLPM(bool enable, uint8_t level = 1);
 
-    bool sleep(uint32_t time_ms);
 
     bool setMode(LoRaWAN_Dev_Class_t mode);
     bool join(bool enable = true, bool boot_auto_join = false,

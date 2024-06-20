@@ -107,3 +107,22 @@ bool RAK3172::init(HardwareSerial *serial, int rx, int tx, int baudrate) {
     xSemaphoreGive(_serial_mutex);
     return sendCommand("AT");
 }
+
+bool RAK3172::configLPM(bool enable) {
+    if (enable) {
+        return sendCommand("AT+LPM=1");
+    } else {
+        return sendCommand("AT+LPM=0");
+    }
+}
+
+bool RAK3172::configLPMLevel(uint8_t level) {
+    return sendCommand("AT+LPMLVL=" + String(level));
+}
+
+bool RAK3172::sleep(uint32_t time_ms) {
+    if (time_ms == 0) {
+        return sendCommand("AT+SLEEP");
+    }
+    return sendCommand("AT+SLEEP=" + String(time_ms));
+}

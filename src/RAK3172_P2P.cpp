@@ -22,14 +22,16 @@ void RAK3172_P2P::parse(String frame) {
 }
 
 void RAK3172_P2P::update() {
-    String res = "";
     if (xSemaphoreTake(_serial_mutex, portMAX_DELAY) == pdTRUE) {
         String res = _serial->readStringUntil('\n');
         xSemaphoreGive(_serial_mutex);
+        Serial.print(res);
         if (res.indexOf("+EVT:RXP2P") != -1) {
-            Serial.print(res);
-            res.remove(res.length() - 1);
-            parse(res);
+            if (res.indexOf("ERROR") != -1) {
+            } else {
+                res.remove(res.length() - 1);
+                parse(res);
+            }
         }
         if (res.indexOf("+EVT:TXP2P DONE") != -1) {
         }
